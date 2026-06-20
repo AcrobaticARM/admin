@@ -1,1 +1,567 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACROBATIC - Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f6f9;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+            color: #333;
+            letter-spacing: 2px;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+        }
+        /* Sidebar Filters */
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .sidebar h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .filter-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-weight: bold;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        /* Content Area */
+        .content {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        /* Action Buttons */
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-add { background: #28a745; color: white; }
+        .btn-close-month { background: #dc3545; color: white; }
+        .btn-save { background: #17a2b8; color: white; }
+        .btn-info { background: #ffc107; color: #333; }
+        .btn-delete { background: #bd2130; color: white; border-radius: 50%; width: 30px; height: 30px; padding: 0; }
 
+        /* Children List/Table */
+        .child-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            gap: 10px;
+        }
+        .child-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+        .child-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+        .child-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .history-text {
+            font-size: 11px;
+            color: #666;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>ACROBATIC</h1>
+    <button class="btn btn-close-month" id="closeMonthBtn">Փակել Ամիսը</button>
+</header>
+
+<div class="main-container">
+    <div class="sidebar">
+        <h3>Ֆիլտրեր</h3>
+        <button class="filter-btn active" data-filter="all">Բոլորը</button>
+        <button class="filter-btn" data-filter="Artashat">Արտաշատ</button>
+        <button class="filter-btn" data-filter="Masis">Մասիս</button>
+        <button class="filter-btn" data-filter="Ըմբշամարտ">Ըմբշամարտ</button>
+        
+        <h4 style="margin-top:15px; margin-bottom:5px;">Ժամեր</h4>
+        <button class="filter-btn" data-filter="15:00">A15:00</button>
+        <button class="filter-btn" data-filter="16:30">A16:30</button>
+        <button class="filter-btn" data-filter="18:00">A18:00</button>
+        <button class="filter-btn" data-filter="19:30">A19:30</button>
+        <button class="filter-btn" data-filter="17:00">M17:00</button>
+        <button class="filter-btn" data-filter="18:30">M18:30</button>
+    </div>
+
+    <div class="content">
+        <div class="content-header">
+            <h2>Երեխաների Ցուցակ (<span id="childCount">0</span>)</h2>
+            <button class="btn btn-add" id="openAddModalBtn">+ Ավելացնել Երեխա</button>
+        </div>
+        <div id="childrenList">
+        </div>
+    </div>
+</div>
+
+<div class="modal hidden" id="addModal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeAddModalBtn">&times;</span>
+        <h3>Ավելացնել Նոր Երեխա</h3>
+        <form id="registrationForm">
+            <div class="form-group"><label>Անուն *</label><input type="text" id="childName" required></div>
+            <div class="form-group"><label>Ազգանուն *</label><input type="text" id="childSurname" required></div>
+            <div class="form-group"><label>Ծննդյան Ամսաթիվ *</label><input type="date" id="childDob" required></div>
+            <div class="form-group"><label>Ծնողի Անուն Ազգանուն *</label><input type="text" id="parentName" required></div>
+            <div class="form-group"><label>Հեռախոսահամար *</label><input type="tel" id="phone" required></div>
+            <div class="form-group"><label>Սոց. Քարտ *</label><input type="text" id="socialCard" required></div>
+            
+            <div class="form-group">
+                <label>Մարզադահլիճ *</label>
+                <select id="location" required>
+                    <option value="">-- Ընտրել --</option>
+                    <option value="Artashat">Արտաշատ</option>
+                    <option value="Masis">Մասիս</option>
+                </select>
+            </div>
+            <div class="form-group hidden" id="sportGroup">
+                <label>Սպորտաձև *</label>
+                <select id="sportType">
+                    <option value="">-- Ընտրել --</option>
+                    <option value="Ակրոբատիկա">Ակրոբատիկա</option>
+                    <option value="Ըմբշամարտ">Ըմբշամարտ</option>
+                </select>
+            </div>
+            <div class="form-group hidden" id="timeGroup">
+                <label>Ժամ *</label>
+                <select id="classTime"></select>
+            </div>
+            <div class="form-group"><label>Նկար *</label><input type="file" id="photoFile" accept="image/*" required></div>
+            <button type="submit" class="btn btn-add" id="submitBtn">Պահպանել Բազայում</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal hidden" id="historyModal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-modal" id="closeHistoryModalBtn">&times;</span>
+        <h3 id="historyModalTitle">Հաճախումների և Վճարների Պատմություն</h3>
+        <div style="display: flex; gap: 20px; margin-top: 15px;">
+            <div style="flex: 1; background: #f8f9fa; padding: 10px; border-radius: 6px;">
+                <h4>🗓 Օրեր (Ներկա/Բացակա)</h4>
+                <ul id="modalAttendanceList" style="padding-left: 20px; margin: 0;"></ul>
+            </div>
+            <div style="flex: 1; background: #f8f9fa; padding: 10px; border-radius: 6px;">
+                <h4>💰 Վճարումներ</h4>
+                <ul id="modalPaymentList" style="padding-left: 20px; margin: 0;"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAPguplFnBe6Yy9QNeb3DJwt9qFydFNcA4",
+        authDomain: "acrobatic-5c3b5.firebaseapp.com",
+        projectId: "acrobatic-5c3b5",
+        storageBucket: "acrobatic-5c3b5.firebasestorage.app",
+        messagingSenderId: "342555745751",
+        appId: "1:342555745751:web:ea3b23ff8855fa52c8ff92",
+        measurementId: "G-BSVEYYC0P5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const CLOUDINARY_CLOUD_NAME = "dhxhjvoc7"; 
+    const CLOUDINARY_UPLOAD_PRESET = "z9r54n9z"; 
+
+    let allStudents = [];
+    let currentFilter = "all";
+
+    // Էլեմենտներ
+    const childrenList = document.getElementById('childrenList');
+    const childCountText = document.getElementById('childCount');
+    const addModal = document.getElementById('addModal');
+    const locationSelect = document.getElementById('location');
+    const sportGroup = document.getElementById('sportGroup');
+    const sportTypeSelect = document.getElementById('sportType');
+    const timeGroup = document.getElementById('timeGroup');
+    const classTimeSelect = document.getElementById('classTime');
+
+    // Բեռնել տվյալները Firestore-ից
+    async function loadData() {
+        childrenList.innerHTML = "Բեռնվում է...";
+        allStudents = [];
+        const querySnapshot = await getDocs(collection(db, "registrations"));
+        querySnapshot.forEach((doc) => {
+            allStudents.push({ id: doc.id, ...doc.data() });
+        });
+        renderList();
+    }
+
+    // Ցուցակի արտածում ըստ ֆիլտրի
+    function renderList() {
+        childrenList.innerHTML = "";
+        let filtered = allStudents.filter(student => {
+            if (currentFilter === "all") return true;
+            if (currentFilter === "Artashat" || currentFilter === "Masis") return student.location === currentFilter;
+            if (currentFilter === "Ըմբշամարտ") return student.sportType === "Ըմբշամարտ";
+            return student.classTime === currentFilter;
+        });
+
+        childCountText.textContent = filtered.length;
+
+        filtered.forEach(student => {
+            const isPaid = student.isPaid || false;
+            const attendanceHistory = student.attendance || [];
+            const paymentHistory = student.payments || [];
+
+            const row = document.createElement('div');
+            row.className = 'child-row';
+            row.innerHTML = `
+                <div class="child-info">
+                    <img src="${student.photoUrl || 'https://via.placeholder.com/50'}" class="child-img">
+                    <div>
+                        <div class="child-name">${student.childName} ${student.childSurname}</div>
+                        <div style="font-size:12px; color:#777;">${student.location} | ${student.sportType || ''} | ${student.classTime}</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <select id="pay-${student.id}">
+                        <option value="false" ${!isPaid ? 'selected' : ''}>Չվճարված</option>
+                        <option value="true" ${isPaid ? 'selected' : ''}>Վճարված</option>
+                    </select>
+                    
+                    <select id="att-${student.id}">
+                        <option value="">-- Հաճախում --</option>
+                        <option value="ներկա">Ներկա</option>
+                        <option value="բացակա">Բացակա</option>
+                    </select>
+
+                    <button class="btn btn-info" id="info-${student.id}">Տվյալներ</button>
+                    <button class="btn" style="background: #6c757d; color: white;" id="hist-${student.id}">Պատմություն</button>
+                    
+                    <div class="history-text">
+                        Վճարներ: ${paymentHistory.join(', ') || 'Չկա'}<br>
+                        Օրեր: ${attendanceHistory.join(', ') || 'Չկա'}
+                    </div>
+
+                    <button class="btn btn-save" id="save-${student.id}">Պահպանել</button>
+                    <button class="btn btn-delete" id="del-${student.id}">X</button>
+                </div>
+            `;
+            childrenList.appendChild(row);
+
+            // Ինֆո Կոճակ
+            document.getElementById(`info-${student.id}`).addEventListener('click', () => {
+                alert(`Երեխա: ${student.childName} ${student.childSurname}\nԾննդյան օր: ${student.childDob}\nԾնող: ${student.parentName}\nՀեռախոս: ${student.phone}\nՍոց Քարտ: ${student.socialCard}\nԳրանցվել է: ${student.createdAt ? new Date(student.createdAt.seconds*1000).toLocaleDateString() : ''}`);
+            });
+
+            // Պատմություն Կոճակ (Նոր ֆունկցիա)
+            document.getElementById(`hist-${student.id}`).addEventListener('click', () => {
+                const hModal = document.getElementById('historyModal');
+                document.getElementById('historyModalTitle').textContent = `${student.childName} ${student.childSurname} - Պատմություն`;
+                
+                const attUl = document.getElementById('modalAttendanceList');
+                const payUl = document.getElementById('modalPaymentList');
+                
+                attUl.innerHTML = "";
+                payUl.innerHTML = "";
+
+                if(attendanceHistory.length === 0) {
+                    attUl.innerHTML = "<li style='color:#777;'>Չկա</li>";
+                } else {
+                    attendanceHistory.forEach(day => {
+                        let li = document.createElement('li');
+                        li.textContent = day;
+                        li.style.color = day.includes("ներկա") ? "#28a745" : "#dc3545";
+                        li.style.fontWeight = "bold";
+                        attUl.appendChild(li);
+                    });
+                }
+
+                if(paymentHistory.length === 0) {
+                    payUl.innerHTML = "<li style='color:#777;'>Չկա</li>";
+                } else {
+                    paymentHistory.forEach(pay => {
+                        let li = document.createElement('li');
+                        li.textContent = `✅ ${pay}`;
+                        li.style.color = "#28a745";
+                        li.style.fontWeight = "bold";
+                        payUl.appendChild(li);
+                    });
+                }
+                
+                hModal.classList.remove('hidden');
+            });
+
+            // Պահպանել տվյալ երեխայի կարգավիճակը (ՕՊՏԻՄԻԶԱՑՎԱԾ ՏԱՐԲԵՐԱԿ)
+            document.getElementById(`save-${student.id}`).addEventListener('click', async (e) => {
+                const btnSave = e.target;
+                btnSave.disabled = true;
+                const oldText = btnSave.textContent;
+                btnSave.textContent = "...";
+
+                const payStatus = document.getElementById(`pay-${student.id}`).value === "true";
+                const attStatus = document.getElementById(`att-${student.id}`).value;
+                const today = new Date().toLocaleDateString('hy-AM');
+
+                let updatedAttendance = [...attendanceHistory];
+                let updatedPayments = [...paymentHistory];
+
+                if (attStatus) {
+                    updatedAttendance.push(`${today} (${attStatus})`);
+                }
+                if (payStatus && !isPaid) {
+                    updatedPayments.push(today);
+                }
+
+                try {
+                    const docRef = doc(db, "registrations", student.id);
+                    await updateDoc(docRef, {
+                        isPaid: payStatus,
+                        attendance: updatedAttendance,
+                        payments: updatedPayments
+                    });
+
+                    // ԼՈԿԱԼ ԹԱՐՄԱՑՈՒՄ՝ արժեքները թարմացնում ենք հիշողության մեջ, որպեսզի հաջորդ սեղմելուն էլ ճիշտ աշխատի
+                    student.isPaid = payStatus;
+                    student.attendance = updatedAttendance;
+                    student.payments = updatedPayments;
+
+                    // Թարմացնում ենք .history-text դիվի պարունակությունը հենց այս տողի վրա
+                    const row = btnSave.closest('.child-row');
+                    if (row) {
+                        const historyDiv = row.querySelector('.history-text');
+                        if (historyDiv) {
+                            historyDiv.innerHTML = `
+                                Վճարներ: ${updatedPayments.join(', ') || 'Չկա'}<br>
+                                Օրեր: ${updatedAttendance.join(', ') || 'Չկա'}
+                            `;
+                        }
+                    }
+
+                    // Մաքրում ենք հաճախման select-ը
+                    document.getElementById(`att-${student.id}`).value = "";
+                    alert("Պահպանվեց:");
+                } catch (err) {
+                    alert("Սխալ պահպանելիս: " + err.message);
+                } finally {
+                    btnSave.disabled = false;
+                    btnSave.textContent = oldText;
+                }
+            });
+
+            // Ջնջել Բազայից
+            document.getElementById(`del-${student.id}`).addEventListener('click', async () => {
+                if (confirm(`Վստա՞հ եք, որ ուզում եք ջնջել ${student.childName}-ին բազայից:`)) {
+                    await deleteDoc(doc(db, "registrations", student.id));
+                    loadData();
+                }
+            });
+        });
+    }
+
+    // Ֆիլտրերի սեղմման իրադարձություն
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.getAttribute('data-filter');
+            renderList();
+        });
+    });
+
+    // Փակել Ամիսը (Բոլորին սարքում է Չվճարված)
+    document.getElementById('closeMonthBtn').addEventListener('click', async () => {
+        if (confirm("Վստա՞հ եք, որ ուզում եք փակել ամիսը: Բոլոր հաճախորդների կարգավիճակը կդառնա ՉՎՃԱՐՎԱԾ:")) {
+            for (let student of allStudents) {
+                if (student.isPaid) {
+                    await updateDoc(doc(db, "registrations", student.id), { isPaid: false });
+                }
+            }
+            alert("Ամիսը փակված է:");
+            loadData();
+        }
+    });
+
+    // Մոդալի բացել/փակելը
+    document.getElementById('openAddModalBtn').addEventListener('click', () => addModal.classList.remove('hidden'));
+    document.getElementById('closeAddModalBtn').addEventListener('click', () => addModal.classList.add('hidden'));
+    document.getElementById('closeHistoryModalBtn').addEventListener('click', () => document.getElementById('historyModal').classList.add('hidden'));
+
+    // Դինամիկ Ժամեր մոդալի ներսում (ինչպես index-ում)
+    locationSelect.addEventListener('change', function() {
+        const selectedLocation = this.value;
+        classTimeSelect.innerHTML = '';
+        sportTypeSelect.value = "";
+        timeGroup.classList.add('hidden');
+        sportGroup.classList.add('hidden');
+
+        if (selectedLocation === 'Artashat') {
+            sportGroup.classList.remove('hidden');
+        } else if (selectedLocation === 'Masis') {
+            timeGroup.classList.remove('hidden');
+            ['17:00', '18:30'].forEach(t => {
+                let o = document.createElement('option'); o.value = t; o.textContent = t; classTimeSelect.appendChild(o);
+            });
+        }
+    });
+
+    sportTypeSelect.addEventListener('change', function() {
+        classTimeSelect.innerHTML = '';
+        if (this.value === 'Ակրոբատիկա') {
+            timeGroup.classList.remove('hidden');
+            ['15:00', '16:30', '18:00', '19:30'].forEach(t => {
+                let o = document.createElement('option'); o.value = t; o.textContent = t; classTimeSelect.appendChild(o);
+            });
+        } else {
+            timeGroup.classList.add('hidden');
+        }
+    });
+
+    // Նոր երեխայի գրանցում մոդալից (Cloudinary + Firestore)
+    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Բեռնվում է...";
+
+        const file = document.getElementById('photoFile').files[0];
+        try {
+            let photoUrl = "";
+            if (file) {
+                const cloudinaryData = new FormData();
+                cloudinaryData.append("file", file);
+                cloudinaryData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: "POST", body: cloudinaryData });
+                const data = await res.json();
+                photoUrl = data.secure_url.replace("/upload/", "/upload/f_webp,q_auto/");
+            }
+
+            const formData = {
+                childName: document.getElementById('childName').value,
+                childSurname: document.getElementById('childSurname').value,
+                childDob: document.getElementById('childDob').value,
+                parentName: document.getElementById('parentName').value,
+                phone: document.getElementById('phone').value,
+                socialCard: document.getElementById('socialCard').value,
+                location: locationSelect.value,
+                sportType: locationSelect.value === 'Artashat' ? sportTypeSelect.value : 'Մասիսի խումբ',
+                classTime: classTimeSelect.value ? classTimeSelect.value : 'Նշված չէ',
+                photoUrl: photoUrl,
+                isPaid: false,
+                attendance: [],
+                payments: [],
+                createdAt: new Date()
+            };
+
+            await addDoc(collection(db, "registrations"), formData);
+            alert("Երեխան հաջողությամբ ավելացվեց բազա:");
+            addModal.classList.add('hidden');
+            document.getElementById('registrationForm').reset();
+            loadData();
+        } catch (err) {
+            alert("Սխալ: " + err.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Պահպանել Բազայում";
+        }
+    });
+
+    // Առաջին բեռնումը
+    loadData();
+</script>
+</body>
+</html>
